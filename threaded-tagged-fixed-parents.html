@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Threaded Comments, Categorized Replies, Fixed Parents - Bootstrap, from Twitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+
+      body { /* affix hack */
+        position: relative;
+      }
+
+      .faded {
+        opacity: 0.5;
+      }
+
+      /*.faded~h4:hover, .faded~p:hover,*/ .faded:hover {
+        opacity: 1;
+      }
+
+      .side {
+        height: 800px;
+        overflow: scroll;
+        overflow-x: hidden;
+      }
+
+      .parents-1 {
+        border-top: 1px solid #ccc;
+      }
+
+      .children, .thread-child {
+        background-color: #f8f8f8;
+      }
+
+      .admin-controls {
+        display: none;
+      }
+
+      .thread-child.for {
+        background-color: #ccffcc;
+      }
+      .thread-child.against {
+        background-color: #ffcccc;
+      }
+      .thread-child.neutral {
+        background-color: #ffffcc;
+      }
+      .thread-child.info {
+        background-color: #ccffff;
+      }
+      .thread-child.question {
+        background-color: #ccccff;
+      }
+      .thread-child.clear {
+        background-color: #none;
+      }
+
+      .comment-90 {
+        width: 64px;
+        max-height: 200px;
+        overflow: hidden;
+      }
+      .comment-90.affix {
+        top: 64px;
+        bottom: auto;
+      }
+      .comment-90.affix-bottom {
+        position: absolute;
+        top: auto;
+        /*bottom: 10339px;*/
+      }
+      .comment-side {
+        min-width: 64px;
+      }
+
+      .comment-side-text {
+        display: none;
+        margin-left: 5px;
+      }
+      .affix > .comment-side-text {
+        display: block;
+      }
+      .affix-bottom > .comment-side-text {
+        display: block;
+      }
+
+      .comment-text {
+        /*min-height: 200px;*/
+      }
+
+      .margin-left-5px {
+        margin-left: 5px;
+      }
+    </style>
+    <!-- <link href="css/bootstrap-responsive.css" rel="stylesheet"> -->
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+                    <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+                                   <link rel="shortcut icon" href="ico/favicon.png">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Comments</a>
+          <div class="nav-collapse collapse">
+            <p class="navbar-text pull-right">
+              Logged in as <a href="#" class="navbar-link">Username</a>
+            </p>
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <script type="text/html" id="thread-parent-template">
+      <!-- ko if: snapshot().child('parents').numChildren() == 0 -->
+      <li class="media" data-bind="attr: { id: 'p-'+snapshot().name() }">
+        <div class="pull-left comment-side">
+          <div class="comment-90">
+            <a href="#" data-bind="attr: { name: 'p-'+snapshot().name() }">
+              <img class="media-object" data-src="holder.js/64x64" alt="64x64" style="width: 64px; height: 64px;" src="img/64x64.png">
+            </a>
+            <div class="comment-side-text muted">
+              <strong data-bind="text: name()"></strong>
+              <span data-bind="html: comment()"></span>
+            </div>
+          </div>
+          <div>&nbsp;</div>
+        </div>
+        <div class="media-body">
+          <div class="pull-right faded admin-admin-controls">
+            <a href="#" data-bind="click: function(){$('.admin-controls').toggle();}" class="btn btn-mini"><i class="icon-user"></i> toggle admin controls</a>
+            <a href="#" data-bind="click: $root.remove_thread" class="btn btn-mini btn-danger"><i class="icon-remove icon-white"></i> remove</a>
+            <a href="#" data-bind="click: $root.new_thread_child" class="btn btn-mini btn-success"><i class="icon-plus icon-white"></i> reply</a>
+            <a href="#" data-bind="click: $root.update_thread" class="btn btn-mini btn-primary"><i class="icon-time icon-white"></i> update</a>
+          </div>
+          <h4 class="media-heading"><!-- <span data-bind="text: $index" class="muted"></span>  --><span data-bind="text: name()"></span></h4>
+          <p>
+            <div data-bind="html: comment()" class="comment-text"></div>
+            <br />
+            <div class="muted faded">
+              <a class="label" data-bind="click: $root.scroll_to_parent.bind($data,'.side-a'), attr: { href: '#p-' + (snapshot().child('parent').val() || snapshot().name()) }"><i class="icon-white icon-home"></i> <span data-bind="text: snapshot().child('parents').numChildren()"></span> parents</a>
+              <a class="label" data-bind="click: $root.scroll_to_parent_child.bind($data,'.side-a'), attr: { href: '#c-' + snapshot().name() }"><i class="icon-white icon-th-large"></i> context</a>
+              <a class="label" data-bind="if: snapshot().child('children').numChildren() > 0, click: $root.scroll_to_child.bind($data,'.side-b, .side-c'), attr: { href: '#p-' + snapshot().name() }"><i class="icon-white icon-th-list"></i> <span data-bind="text: snapshot().child('children').numChildren()"></span> replies</a>
+              <a class="label" data-bind="if: snapshot().child('children').numChildren() > 0, click: $root.scroll_to_child.bind($data,'.side-b, .side-c'), attr: { href: '#p-' + snapshot().name() }"><i class="icon-white icon-th"></i> <span data-bind="text: snapshot().child('children_all').numChildren()"></span> total</a>
+            <!-- <span data-bind="text: snapshot().name()"></span> -->
+            </div>
+          </p>
+
+          <div class="children">
+          <ul class="media-list" data-bind="template: { name: 'thread-child-template', foreach: children }">
+          </ul>
+          </div>
+
+        </div>
+      </li>
+      <!-- /ko -->
+    </script>    
+
+    <script type="text/html" id="thread-child-template">
+      <!-- ko with: comment -->
+      <li class="media thread-child" data-bind="attr: { id: 'c-'+snapshot().name() }, css: snapshot().val().tag">
+        <div class="pull-left comment-side">
+          <div class="comment-90">
+            <a href="#" data-bind="attr: { name: 'c-'+snapshot().name() }">
+              <img class="media-object" data-src="holder.js/64x64" alt="64x64" style="width: 64px; height: 64px;" src="img/64x64.png">
+            </a>
+            <!-- <div class="muted margin-left-5px"><span data-bind="text: $index"></span> of <span data-bind="text: snapshot().child('children').numChildren()"></span></div> -->
+            <div class="comment-side-text muted">
+              <strong data-bind="text: name()"></strong>
+              <span data-bind="html: comment()"></span>
+            </div>
+          </div>
+          <div>&nbsp;</div>
+        </div>        
+        <div class="media-body">
+          <div class="pull-right faded admin-controls">
+            <a href="#" data-bind="click: $root.remove_thread" class="btn btn-mini btn-danger"><i class="icon-remove icon-white"></i></a>
+            <a href="#" data-bind="click: $root.new_thread_child" class="btn btn-mini btn-success"><i class="icon-plus icon-white"></i></a>
+            <a href="#" data-bind="click: $root.update_thread" class="btn btn-mini btn-primary"><i class="icon-time icon-white"></i></a>
+          </div>
+          <div class="pull-right faded">
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'clear')" class="btn btn-mini"><i class="icon-refresh icon-white"></i></a>
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'against')" class="btn btn-mini btn-danger"><i class="icon-minus icon-white"></i></a>
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'neutral')" class="btn btn-mini btn-warning"><i class="icon-adjust icon-white"></i></a>
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'for')" class="btn btn-mini btn-success"><i class="icon-plus icon-white"></i></a>
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'info')" class="btn btn-mini btn-info"><i class="icon-info-sign icon-white"></i></a>
+            <a href="#" data-bind="click: $root.tag_thread.bind($data,'question')" class="btn btn-mini btn-primary"><i class="icon-question-sign icon-white"></i></a>
+          </div>
+          <h4 class="media-heading"><!-- <span data-bind="text: $index" class="muted"></span>  --><span data-bind="text: name"></span></span></h4>
+          <p>
+            <div data-bind="html: comment()" class="comment-text"></div>
+            <br />
+            <div class="muted faded">
+              <a class="label" data-bind="click: $root.scroll_to_parent.bind($data,'.side-a'), attr: { href: '#p-' + (snapshot().child('parent').val() || snapshot().name()) }"><i class="icon-white icon-home"></i> <span data-bind="text: snapshot().child('parents').numChildren()"></span> parents</a>
+              <a class="label" data-bind="click: $root.scroll_to_parent_child.bind($data,'.side-a'), attr: { href: '#c-' + snapshot().name() }"><i class="icon-white icon-th-large"></i> context</a>
+              <a class="label" data-bind="if: snapshot().child('children').numChildren() > 0, click: $root.scroll_to_child.bind($data,'.side-b, .side-c'), attr: { href: '#p-' + snapshot().name() }"><i class="icon-white icon-th-list"></i> <span data-bind="text: snapshot().child('children').numChildren()"></span> replies</a>
+              <a class="label" data-bind="if: snapshot().child('children').numChildren() > 0, click: $root.scroll_to_child.bind($data,'.side-b, .side-c'), attr: { href: '#p-' + snapshot().name() }"><i class="icon-white icon-th"></i> <span data-bind="text: snapshot().child('children_all').numChildren()"></span> total</a>
+              <!-- <span data-bind="text: snapshot().name()"></span> -->
+            </div>
+          </p>
+
+          <ul class="media-list" data-bind="template: { name: 'thread-child-template', foreach: children }">
+          </ul>
+
+        </div>
+      </li>     
+      <!-- /ko -->
+    </script>
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12">
+
+
+
+            <div class="page-header">          
+              <h1>Comments</h1>
+            </div>
+
+            <button class="btn btn-warning pull-right" data-bind="click: new_thread">New Thread</button>
+            <p class="lead">Threaded, Categorized Replies with Fixed Parents </p>
+
+            <div id="loading">
+              <div class="progress progress-striped active">
+                <div class="bar" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <ul class="media-list" data-bind="template: { name: 'thread-parent-template', foreach: threads, afterRender: function(){ affix_timer.init(); } }">
+            </ul>
+
+
+
+        </div><!--/span-->
+
+
+
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+        <p>&copy; Company 2012</p>
+      </footer>
+
+    </div><!--/.fluid-container-->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-1.8.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/knockout-2.2.0.js"></script>
+    <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+    <script src="js/threaded-tagged-fixed.js"></script>
+
+  </body>
+</html>
